@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Pardus</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #0a0a0a;
+    font-family: "DejaVu Sans Mono", "Courier New", monospace;
+    cursor: none;
+  }
+
+  /* ---------- SAHTE PARDUS ÇEKİRDEK HATASI ---------- */
+  #panic {
+    position: fixed; inset: 0;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5vw 8vw;
+    z-index: 10;
+    font-size: 1.15vw;
+    line-height: 1.7;
+  }
+  #panic .header {
+    font-size: 1.6vw; font-weight: bold; color: #ff5555;
+    margin-bottom: 1.5vw; letter-spacing: 1px;
+  }
+  #panic .panic-line {
+    color: #ff5555; font-weight: bold; margin-bottom: 1.2vw; font-size: 1.25vw;
+  }
+  #panic .info { color: #aaaaaa; margin-bottom: 0.4vw; }
+  #panic .info span { color: #ffffff; }
+  #panic .stack {
+    color: #888888; margin-top: 1.5vw; font-size: 1vw; line-height: 1.5;
+  }
+  #panic .stack .highlight { color: #ffaa00; }
+  #panic .footer {
+    margin-top: 2vw; color: #666666; font-size: 0.95vw;
+    border-top: 1px solid #333; padding-top: 1vw;
+  }
+  #panic .footer .blink { animation: blink 1s step-end infinite; color: #00ff00; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- GLITCH ---------- */
+  #glitch {
+    position: fixed; inset: 0;
+    background: #8b0000;
+    z-index: 20;
+    display: none;
+    animation: glitchShake 0.12s infinite;
+  }
+  @keyframes glitchShake {
+    0%   { transform: translate(0,0);      opacity: 1;   filter: hue-rotate(0deg) contrast(1); }
+    15%  { transform: translate(-8px,4px);  opacity: 0.8; filter: hue-rotate(60deg) contrast(1.5); }
+    30%  { transform: translate(6px,-6px);  opacity: 0.9; filter: hue-rotate(-40deg) contrast(0.8); }
+    45%  { transform: translate(-4px,-3px); opacity: 0.7; filter: hue-rotate(100deg) contrast(1.8); }
+    60%  { transform: translate(7px,5px);   opacity: 0.85; filter: hue-rotate(-80deg) contrast(1.2); }
+    75%  { transform: translate(-6px,2px);  opacity: 0.75; filter: hue-rotate(30deg) contrast(1.6); }
+    90%  { transform: translate(3px,-5px);  opacity: 0.95; filter: hue-rotate(-20deg) contrast(0.9); }
+    100% { transform: translate(0,0);      opacity: 1;   filter: hue-rotate(0deg) contrast(1); }
+  }
+
+  /* ---------- ÖĞRETMENLER GÜNÜ KUTLAMASI ---------- */
+  #kutlama {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5vw;
+    cursor: default;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    overflow: hidden;
+  }
+
+  #kutlama .emoji {
+    font-size: 9vw;
+    margin-bottom: 1.5vw;
+    animation: pop 0.8s ease-out;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
+    60%  { transform: scale(1.3) rotate(10deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  #kutlama h1 {
+    font-size: 5vw;
+    font-weight: 800;
+    margin-bottom: 1.5vw;
+    background: linear-gradient(90deg, #ffd700, #fff, #ffd700);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shine 3s linear infinite, fadeUp 1s ease-out 0.3s both;
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+  }
+  @keyframes shine {
+    to { background-position: 200% center; }
+  }
+
+  #kutlama p {
+    font-size: 1.8vw;
+    color: #c9d6e8;
+    max-width: 70vw;
+    line-height: 1.6;
+    animation: fadeUp 1s ease-out 0.6s both;
+  }
+
+  @keyframes fadeUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  /* Kalpler */
+  #kutlama .hearts {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  #kutlama .hearts span {
+    position: absolute;
+    bottom: -10vh;
+    animation: floatUp linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.8; }
+    90%  { opacity: 0.8; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Konfeti */
+  #kutlama .confetti {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  #kutlama .confetti i {
+    position: absolute;
+    top: -5vh;
+    width: 0.8vw; height: 1.4vw;
+    opacity: 0.85;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(110vh) rotate(720deg); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- SAHTE PARDUS ÇEKİRDEK HATASI -->
+  <div id="panic">
+    <div class="header">[    0.000000] Pardus GNU/Linux 23.4</div>
+    <div class="panic-line">Kernel panic - not syncing: Fatal exception in interrupt</div>
+    <div class="info">CPU: <span>0</span> PID: <span>1</span> Comm: <span>swapper/0</span> Tainted: <span>G    W    O</span></div>
+    <div class="info">Hardware name: <span>Pardus ETAP Interactive Board / ETAP-MB (BIOS v2.4)</span></div>
+    <div class="info">Kernel: <span>6.12.57+deb13-amd64</span></div>
+    <div class="info">RIP: <span>0010:__schedule+0x2a4/0x7e0</span></div>
+    <div class="info">RSP: <span>ffffc90000013e50</span> EFLAGS: <span>00010046</span></div>
+    <div class="stack">
+      Call Trace:<br>
+      &lt;IRQ&gt;<br>
+      &nbsp;&nbsp;<span class="highlight">? __schedule+0x2a4/0x7e0</span><br>
+      &nbsp;&nbsp;schedule+0x47/0x60<br>
+      &nbsp;&nbsp;schedule_timeout+0x1b0/0x2e0<br>
+      &nbsp;&nbsp;wait_for_completion+0x86/0x110<br>
+      &nbsp;&nbsp;initramfs_load+0x1f4/0x4a0<br>
+      &nbsp;&nbsp;kernel_init+0x1c6/0x2e0<br>
+      &nbsp;&nbsp;ret_from_fork+0x2f/0x50<br>
+    </div>
+    <div class="footer">
+      &nbsp;&nbsp;---[ end Kernel panic - not syncing: Fatal exception in interrupt ]---<br>
+      <span class="blink">_</span> Sistem yeniden başlatılmayı bekliyor...
+    </div>
+  </div>
+
+  <!-- GLITCH -->
+  <div id="glitch"></div>
+
+  <!-- KUTLAMA -->
+  <div id="kutlama">
+    <div class="hearts" id="hearts"></div>
+    <div class="confetti" id="confetti"></div>
+    <div class="emoji">🎉</div>
+    <h1>Öğretmenler Gününüz Kutlu Olsun!</h1>
+    <p>Bizi bugünlere getiren, emek veren, sabır gösteren tüm öğretmenlerimize teşekkürler.</p>
+  </div>
+
+<script>
+  const panic    = document.getElementById('panic');
+  const glitch   = document.getElementById('glitch');
+  const kutlama  = document.getElementById('kutlama');
+
+  let playing = false;
+
+  // Kalpleri oluştur
+  function kalpleriOlustur() {
+    const hearts = document.getElementById('hearts');
+    const emojiler = ['❤️', '💛', '💙', '💚', '🧡', '💜'];
+    for (let i = 0; i < 18; i++) {
+      const span = document.createElement('span');
+      span.textContent = emojiler[Math.floor(Math.random() * emojiler.length)];
+      span.style.left = Math.random() * 100 + '%';
+      span.style.animationDelay = Math.random() * 6 + 's';
+      span.style.animationDuration = (4 + Math.random() * 4) + 's';
+      span.style.fontSize = (1.5 + Math.random() * 2) + 'vw';
+      hearts.appendChild(span);
+    }
+  }
+
+  // Konfeti oluştur
+  function konfetiOlustur() {
+    const confetti = document.getElementById('confetti');
+    const renkler = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#a29bfe', '#fd79a8'];
+    for (let i = 0; i < 40; i++) {
+      const iEl = document.createElement('i');
+      iEl.style.left = Math.random() * 100 + '%';
+      iEl.style.background = renkler[Math.floor(Math.random() * renkler.length)];
+      iEl.style.animationDelay = Math.random() * 3 + 's';
+      iEl.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+      iEl.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      confetti.appendChild(iEl);
+    }
+  }
+
+  kalpleriOlustur();
+  konfetiOlustur();
+
+  function tetikle() {
+    if (playing) return;
+    playing = true;
+
+    glitch.style.display = 'block';
+    setTimeout(() => {
+      glitch.style.display = 'none';
+      panic.style.display = 'none';
+      kutlama.style.display = 'flex';
+    }, 1500);
+  }
+
+  document.addEventListener('click', tetikle);
+  document.addEventListener('touchstart', tetikle, { passive: true });
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); tetikle(); }
+  });
+
+  // ESC ile acil çıkış
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Escape') {
+      glitch.style.display = 'none';
+      kutlama.style.display = 'none';
+      panic.style.display = 'flex';
+      playing = false;
+    }
+  });
+</script>
+</body>
+</html>
